@@ -10,8 +10,6 @@ import java.util.concurrent.TimeUnit;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RateLimit {
     int count() default 100; // 每个窗口允许请求数，默认100
-    double time() default 1;  // 时间窗口(秒)，默认1秒
-    long timeout() default 0;  // 超时时间（毫秒）
-    TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
+    int time() default 1;  // 时间窗口(秒)，默认1秒
     String message() default "系统繁忙，请稍后再试!"; // 限流提示
 }

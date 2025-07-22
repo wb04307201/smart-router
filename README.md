@@ -25,7 +25,7 @@
 ```xml
 <dependency>
     <groupId>com.gitee.wb04307201</groupId>
-    <artifactId>lock-spring-boot-starter</artifactId>
+    <artifactId>rate-limit-spring-boot-starter</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```

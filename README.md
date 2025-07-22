@@ -32,20 +32,45 @@
 
 ## 第三步 在启动类上加上`@EnableRateLimit.java`注解
 ```java
+@EnableRateLimit
+@SpringBootApplication
+public class RateLimitDemoApplication {
 
+    public static void main(String[] args) {
+        SpringApplication.run(RateLimitDemoApplication.class, args);
+    }
+
+}
 ```
 
-## 第四步 在`application.yml`配置文件中按需添加相关配置
+## 第四步 通过注解使用锁
+默认使用guava的令牌桶计算限流
+```java
+@RestController
+public class DemoController {
+
+    @RateLimit(count = 1, time = 10)
+    @GetMapping("/hello")
+    public String hello() throws InterruptedException {
+        return "hello world";
+    }
+}
+```
+
+
+
+## 在`application.yml`配置文件中配置使用redis的分布式限流
 ```yaml
 rate:
   limit:
-      locktype: redis
+      rateLimitType: redis // 可选值 redis（单点） redis-cluster（集群） redis-sentinel（哨兵）
+      // redis 配置示例
       redis:
         address: redis://ip:port
         password: mypassword
         # 数据库，默认是0
         database: 0
-      locktype: redis-cluster
+      // 集群配置示例
       redis:
         password: mypassword
         # 集群节点
@@ -53,7 +78,7 @@ rate:
           - redis://ip:port
           - redis://ip:port
           - redis://ip:port
-      locktype: redis-sentinel
+      // 哨兵配置示例
       redis:
         password: mypassword
         # 数据库，默认0
@@ -66,10 +91,5 @@ rate:
         # 主服务名
         masterName: masterName
     
-```
-
-## 第五步 通过注解使用锁
-```java
-
 ```
 

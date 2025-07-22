@@ -1,6 +1,7 @@
 package cn.wubo.rate.limit.config;
 
 import cn.wubo.rate.limit.core.RateLimitAspect;
+import cn.wubo.rate.limit.core.RateLimitlExceptionHandler;
 import cn.wubo.rate.limit.core.RedissionRateLimiter;
 import cn.wubo.rate.limit.core.platform.IRateLimit;
 import cn.wubo.rate.limit.core.platform.guava.GuavaRateLimiter;
@@ -48,5 +49,10 @@ public class RateLimitConfig {
     @Bean
     public RateLimitAspect rateLimitAspect(IRateLimit rateLimit) {
         return new RateLimitAspect(rateLimit);
+    }
+
+    @Bean
+    public RateLimitlExceptionHandler rateLimitlExceptionHandler() {
+        return new RateLimitlExceptionHandler();
     }
 }

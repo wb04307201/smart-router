@@ -1,12 +1,11 @@
 package cn.wubo.rate.limit.config;
 
 import cn.wubo.rate.limit.core.RateLimitAspect;
-import cn.wubo.rate.limit.core.RateLimitlExceptionHandler;
-import cn.wubo.rate.limit.core.RedissionRateLimiter;
+import cn.wubo.rate.limit.core.RateLimitExceptionHandler;
 import cn.wubo.rate.limit.core.platform.IRateLimit;
 import cn.wubo.rate.limit.core.platform.guava.GuavaRateLimiter;
+import cn.wubo.rate.limit.core.platform.redission.RedissonRateLimiter;
 import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -20,15 +19,15 @@ public class RateLimitConfig {
 
     /**
      * 创建并返回一个IRateLimit实例，根据配置的限流类型初始化不同的限流实现。
-     * 
+     *
      * @param properties 限流配置属性，包含限流类型和Redis相关配置
      * @return 初始化后的IRateLimit实例
      */
     @Bean
     public IRateLimit rateLimiter(RateLimitProperties properties) {
-        if("guava".equals(properties.getRateLimitType())){
+        if ("guava".equals(properties.getRateLimitType())) {
             return new GuavaRateLimiter();
-        }else {
+        } else {
             /**
              * 根据不同的限流类型初始化Redis配置
              * 支持的类型包括单机Redis、Redis集群和Redis哨兵模式
@@ -42,7 +41,7 @@ public class RateLimitConfig {
                 config.useSentinelServers().addSentinelAddress(properties.getRedis().getNodes().toArray(new String[0])).setPassword(properties.getRedis().getPassword()).setDatabase(properties.getRedis().getDatabase()).setMasterName(properties.getRedis().getMasterName());
             }
 
-            return new RedissionRateLimiter(Redisson.create(config));
+            return new RedissonRateLimiter(Redisson.create(config));
         }
     }
 
@@ -52,7 +51,7 @@ public class RateLimitConfig {
     }
 
     @Bean
-    public RateLimitlExceptionHandler rateLimitlExceptionHandler() {
-        return new RateLimitlExceptionHandler();
+    public RateLimitExceptionHandler rateLimitlExceptionHandler() {
+        return new RateLimitExceptionHandler();
     }
 }

@@ -20,9 +20,8 @@ public class GuavaRateLimiter implements IRateLimit {
      */
     @Override
     public boolean tryAcquire(String key, int count, int time) {
-        // 获取或创建一个RateLimiter实例
-        RateLimiter limiter = limiters.computeIfAbsent(key, k -> RateLimiter.create(count / (double)time));
-        // 尝试获取一个许可
+        // 获取或创建一个RateLimiter实例，每秒允许的请求数为count/time
+        RateLimiter limiter = limiters.computeIfAbsent(key, k -> RateLimiter.create((double) count / time));
         return limiter.tryAcquire();
     }
 }

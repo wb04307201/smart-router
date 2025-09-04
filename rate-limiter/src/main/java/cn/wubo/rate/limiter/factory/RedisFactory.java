@@ -10,7 +10,7 @@ import org.redisson.config.Config;
 
 import java.util.Map;
 
-public class RedisFctory implements IFactory {
+public class RedisFactory implements IFactory {
     @Override
     public Boolean supports(String rateLimitingType) {
         return "redis".equals(rateLimitingType) ||

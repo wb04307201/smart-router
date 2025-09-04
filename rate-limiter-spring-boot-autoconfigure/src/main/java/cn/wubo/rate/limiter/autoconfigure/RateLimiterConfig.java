@@ -5,16 +5,18 @@ import cn.wubo.rate.limiter.RateLimiterProperties;
 import cn.wubo.rate.limiter.RateLimiterRuleManager;
 import cn.wubo.rate.limiter.bucket.IRateLimiter;
 import cn.wubo.rate.limiter.factory.IFactory;
-import cn.wubo.rate.limiter.factory.RedisFctory;
-import cn.wubo.rate.limiter.factory.StandaloneFctory;
+import cn.wubo.rate.limiter.factory.RedisFactory;
+import cn.wubo.rate.limiter.factory.StandaloneFactory;
+import cn.wubo.rate.limiter.storage.IStorage;
+import cn.wubo.rate.limiter.storage.SimpleStorage;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,8 +41,14 @@ public class RateLimiterConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public IStorage simpleStorage() {
+        return new SimpleStorage();
+    }
+
+    @Bean
     public List<IFactory> factories() {
-        return List.of(new StandaloneFctory(), new RedisFctory());
+        return List.of(new StandaloneFactory(), new RedisFactory());
     }
 
     @Bean
@@ -53,8 +61,8 @@ public class RateLimiterConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public RateLimiterRuleManager rateLimitingRuleManager(RateLimiterProperties properties, IRateLimiter bucket) {
-        return new RateLimiterRuleManager(properties, bucket);
+    public RateLimiterRuleManager rateLimitingRuleManager(RateLimiterProperties properties, IRateLimiter bucket, IStorage storage) {
+        return new RateLimiterRuleManager(properties, bucket, storage);
     }
 
     @Bean
@@ -72,14 +80,19 @@ public class RateLimiterConfig implements WebMvcConfigurer {
     public RouterFunction<ServerResponse> methodTraceLogRouter(RateLimiterRuleManager ruleManager) {
         RouterFunctions.Builder builder = RouterFunctions.route();
         builder.GET("/rate/limiter/monitor/view", request -> ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(new ClassPathResource(("/monitor.html"))));
-        builder.GET("/rate/limiter/monitor/static", request ->
-                ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(ruleManager.getStatic())
-        );
+        builder.GET("/rate/limiter/monitor/static", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(ruleManager.getStatic()));
         builder.GET("/rate/limiter/monitor/staticByEndpoint", request -> {
                     String endpoint = request.param("endpoint").orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "endpoint is required"));
                     return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(ruleManager.getStaticByEndpoint(endpoint));
                 }
         );
+        builder.GET("/rate/limiter/monitor/rules", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(ruleManager.getRules()));
+        builder.POST("/rate/limiter/monitor/rules", request -> {
+            List<RateLimiterProperties.RateLimitRule> rules = request.body(new ParameterizedTypeReference<>() {
+            });
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(ruleManager.updateRules(rules));
+        });
+
         return builder.build();
     }
 }

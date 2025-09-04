@@ -5,8 +5,8 @@ import cn.wubo.rate.limiter.RateLimiterRuleManager;
 import cn.wubo.rate.limiter.autoconfigure.RateLimiterConfig;
 import cn.wubo.rate.limiter.bucket.IRateLimiter;
 import cn.wubo.rate.limiter.factory.IFactory;
-import cn.wubo.rate.limiter.factory.RedisFctory;
-import cn.wubo.rate.limiter.factory.StandaloneFctory;
+import cn.wubo.rate.limiter.factory.RedisFactory;
+import cn.wubo.rate.limiter.factory.StandaloneFactory;
 import cn.wubo.rate.limiter.interceptor.RateLimiterInterceptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,8 +41,8 @@ class RateLimiterConfigTest {
         // Then
         assertNotNull(factories);
         assertEquals(2, factories.size());
-        assertTrue(factories.get(0) instanceof StandaloneFctory);
-        assertTrue(factories.get(1) instanceof RedisFctory);
+        assertTrue(factories.get(0) instanceof StandaloneFactory);
+        assertTrue(factories.get(1) instanceof RedisFactory);
     }
 
     @Test

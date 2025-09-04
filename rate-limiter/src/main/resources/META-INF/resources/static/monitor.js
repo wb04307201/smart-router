@@ -28,7 +28,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // 关闭弹出框（点击 × 按钮）
-    document.querySelector(".close-btn").addEventListener("click", () => {
+    document.getElementById("close-modal").addEventListener("click", () => {
+        const modal = document.getElementById("modal");
+        modal.style.display = "none";
+    });
+
+    // 关闭弹出框（点击 × 按钮）
+    document.getElementById("close-modal1").addEventListener("click", () => {
+        const modal = document.getElementById("modal1");
         modal.style.display = "none";
     });
 
@@ -42,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function () {
         width: windowWidth - 120,
         height: windowHeight - 120
     });
-    window.addEventListener('resize', () => myChart.resize());
 });
 
 function loadData() {
@@ -107,7 +113,7 @@ function updateTable(data) {
         tableHTML += `
                     <tr>
                         <td>${item.endpoint}</td>
-                        <td>${item.isRateLimiter ? "被限流":"无限制"}</td>
+                        <td>${item.isRateLimiter ? "被限流" : "无限制"}</td>
                         <td>${item.total.toLocaleString()}</td>
                         <td>${item.allowed.toLocaleString()}</td>
                         <td>${item.allowedRate.toFixed(2)}%</td>
@@ -130,9 +136,6 @@ function openModal(endpoint) {
     fetch('/rate/limiter/monitor/staticByEndpoint?endpoint=' + endpoint)
         .then(response => response.json())
         .then(data => {
-            const modal = document.getElementById("modal");
-            modal.style.display = 'block';
-
             // 指定图表的配置项和数据
             var option = {
                 title: {
@@ -158,8 +161,82 @@ function openModal(endpoint) {
 
             // 使用刚指定的配置项和数据显示图表。
             myChart.setOption(option);
+
+
+            const modal = document.getElementById("modal");
+            modal.style.display = 'block';
         })
         .catch(error => {
             console.error('加载数据失败:', error);
         })
+}
+
+function updateRules() {
+    fetch('/rate/limiter/monitor/rules')
+        .then(response => response.json())
+        .then(data => {
+            const rules = document.getElementById('rules');
+            rules.innerHTML = JSON.stringify(data,null,2)
+
+
+            const modal = document.getElementById("modal1");
+            modal.style.display = 'block';
+        })
+}
+
+// 格式化 JSON（自动缩进）
+function formatJSON() {
+    const textarea = document.getElementById('rules');
+    try {
+        const obj = JSON.parse(textarea.value);
+        textarea.value = JSON.stringify(obj,null,2); // 缩进 2 空格
+    } catch (e) {
+        showToast('❌ JSON 格式错误: ' + e.message);
+    }
+}
+
+// 验证 JSON 合法性
+function validateJSON() {
+    const textarea = document.getElementById('rules');
+    try {
+        const obj = JSON.parse(textarea.value);
+        console.log("保存的对象:", obj);
+
+        // 发送 POST 请求
+        fetch('/rate/limiter/monitor/rules', {
+            method: 'POST', // 指定请求方法
+            headers: {
+                'Content-Type': 'application/json', // 设置内容类型
+            },
+            body: JSON.stringify(obj) // 将数据转换为JSON字符串
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应不正常');
+                }
+                return response.json(); // 解析JSON响应
+            })
+            .then(data => {
+                const modal = document.getElementById("modal1");
+                modal.style.display = "none";
+                showToast('✅ 限流规则更新成功！');
+            })
+            .catch(error => {
+                console.error('错误:', error); // 处理错误
+            });
+
+    } catch (e) {
+        showToast('❌ JSON 格式错误: ' + e.message);
+    }
+}
+
+function showToast(message) {
+    var toast = document.getElementById("toast");
+    toast.innerHTML = message;
+    toast.className = "show";
+
+    // 3秒后自动关闭
+    setTimeout(function(){
+        toast.className = toast.className.replace("show", "");
+    }, 3000);
 }

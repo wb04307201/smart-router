@@ -32,7 +32,7 @@
 <dependency>
     <groupId>com.gitee.wb04307201.rate-limiter</groupId>
     <artifactId>rate-limiter-spring-boot-starter</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
@@ -43,7 +43,7 @@
 ```yaml
 rate:
   limiter:
-    rate-limiting-type: standalone # 限流类型: redis单点 redis, redis集群 redis-cluster, redis哨兵 redis-sentinel, 单机 standalone
+    rate-limiting-type: standalone # 限流类型: redis单点 redis, redis集群 redis-cluster, redis哨兵 redis-sentinel, 单机 standalone(默认)
     rules:                         # 限流规则列表
       - endpoint: /api/test        # 接口路径
         limit: 10                  # 限流数量
@@ -95,7 +95,8 @@ rate:
 
 - 访问 `/rate/limiter/monitor/view` 查看监控页面
 ![img.png](img.png)
-- 
+![img_1.png](img_1.png)
+
 ## 扩展性
 
 项目设计具有良好的扩展性：

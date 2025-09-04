@@ -18,7 +18,6 @@ public class RateLimiterRuleManager {
     @Getter
     private List<RateLimiterProperties.RateLimitRule> rules;
     private final IRateLimiter bucket;
-    private final List<RateLimiterInfo> rateLimiterInfos;
     private Long systemStartTime;
     private final IStorage storage;
 
@@ -28,7 +27,6 @@ public class RateLimiterRuleManager {
     public RateLimiterRuleManager(RateLimiterProperties properties, IRateLimiter bucket, IStorage storage) {
         this.rules = properties.getRules();
         this.bucket = bucket;
-        this.rateLimiterInfos = new ArrayList<>();
         this.systemStartTime = System.currentTimeMillis();
         this.storage = storage;
         this.MATCHER = new AntPathMatcher();
@@ -54,11 +52,16 @@ public class RateLimiterRuleManager {
         return allow;
     }
 
-    public void updateRules(List<RateLimiterProperties.RateLimitRule> rules) {
+    public List<RateLimiterInfo> getAll() {
+        return storage.getAll();
+    }
+
+    public Boolean updateRules(List<RateLimiterProperties.RateLimitRule> rules) {
         bucket.clear();
         this.rules = rules;
         storage.clear();
         this.systemStartTime = System.currentTimeMillis();
+        return true;
     }
 
     public List<Map<String, Object>> getStatic() {

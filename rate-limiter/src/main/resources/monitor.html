@@ -39,9 +39,9 @@
             <option value="30000">30秒</option>
             <option value="60000">1分钟</option>
         </select>
-<!--        <button class="btn btn-toggle">-->
-<!--            修改限流规则-->
-<!--        </button>-->
+        <button class="btn btn-toggle" onclick="updateRules()" style="float: right;">
+            修改限流规则
+        </button>
     </div>
 
     <!-- 方法调用统计表 -->
@@ -57,10 +57,24 @@
     <!-- 弹出框结构 -->
     <div id="modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
+            <span class="close-btn" id="close-modal">&times;</span>
             <div id="main" style="margin-top: 20px;"></div>
         </div>
     </div>
+
+
+    <div id="modal1" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal1">&times;</span>
+            <textarea id="rules" style="width: 100%; height: calc(100% - 70px);margin-top: 25px;"></textarea>
+            <div>
+                <button  class="btn" onclick="formatJSON()">格式化</button>
+                <button  class="btn" onclick="validateJSON()">验证并保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">这是一个Toast通知消息</div>
 </div>
 </body>
 </html>

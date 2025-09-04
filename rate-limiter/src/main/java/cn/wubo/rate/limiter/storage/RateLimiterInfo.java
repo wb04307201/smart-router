@@ -1,4 +1,4 @@
-package cn.wubo.rate.limiter;
+package cn.wubo.rate.limiter.storage;
 
 import lombok.Data;
 

@@ -5,7 +5,7 @@ import cn.wubo.rate.limiter.bucket.GuavaRateLimiter;
 import cn.wubo.rate.limiter.bucket.IRateLimiter;
 import jakarta.validation.Validator;
 
-public class StandaloneFctory implements IFactory{
+public class StandaloneFactory implements IFactory{
     @Override
     public Boolean supports(String rateLimitingType) {
         return "standalone".equals(rateLimitingType);

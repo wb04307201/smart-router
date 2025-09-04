@@ -5,13 +5,14 @@ import cn.wubo.rate.limiter.RateLimiterProperties;
 import cn.wubo.rate.limiter.RateLimiterRuleManager;
 import cn.wubo.rate.limiter.bucket.IRateLimiter;
 import cn.wubo.rate.limiter.factory.IFactory;
-import cn.wubo.rate.limiter.factory.RedisFctory;
-import cn.wubo.rate.limiter.factory.StandaloneFctory;
+import cn.wubo.rate.limiter.factory.RedisFactory;
+import cn.wubo.rate.limiter.factory.StandaloneFactory;
+import cn.wubo.rate.limiter.storage.IStorage;
+import cn.wubo.rate.limiter.storage.SimpleStorage;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -39,8 +40,14 @@ public class RateLimiterConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public IStorage simpleStorage(){
+        return new SimpleStorage();
+    }
+
+    @Bean
     public List<IFactory> factories() {
-        return List.of(new StandaloneFctory(), new RedisFctory());
+        return List.of(new StandaloneFactory(), new RedisFactory());
     }
 
     @Bean
@@ -53,8 +60,8 @@ public class RateLimiterConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public RateLimiterRuleManager rateLimitingRuleManager(RateLimiterProperties properties, IRateLimiter bucket) {
-        return new RateLimiterRuleManager(properties, bucket);
+    public RateLimiterRuleManager rateLimitingRuleManager(RateLimiterProperties properties, IRateLimiter bucket,IStorage storage) {
+        return new RateLimiterRuleManager(properties, bucket, storage);
     }
 
     @Bean

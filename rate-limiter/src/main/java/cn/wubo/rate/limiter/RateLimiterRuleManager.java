@@ -1,6 +1,9 @@
 package cn.wubo.rate.limiter;
 
 import cn.wubo.rate.limiter.bucket.IRateLimiter;
+import cn.wubo.rate.limiter.storage.IStorage;
+import cn.wubo.rate.limiter.storage.RateLimiterInfo;
+import cn.wubo.rate.limiter.storage.SimpleStorage;
 import lombok.Getter;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -17,24 +20,27 @@ public class RateLimiterRuleManager {
     private final IRateLimiter bucket;
     private final List<RateLimiterInfo> rateLimiterInfos;
     private Long systemStartTime;
+    private final IStorage storage;
 
+    // 复用 PathMatcher 实例
+    private final PathMatcher MATCHER;
 
-    public RateLimiterRuleManager(RateLimiterProperties properties, IRateLimiter bucket) {
+    public RateLimiterRuleManager(RateLimiterProperties properties, IRateLimiter bucket, IStorage storage) {
         this.rules = properties.getRules();
         this.bucket = bucket;
         this.rateLimiterInfos = new ArrayList<>();
         this.systemStartTime = System.currentTimeMillis();
+        this.storage = storage;
+        this.MATCHER = new AntPathMatcher();
     }
 
     public Boolean tryConsume(String endpoint) {
         Boolean allow = Boolean.TRUE;
         RateLimiterInfo rateLimiterInfo = new RateLimiterInfo(endpoint, LocalDateTime.now());
-        PathMatcher matcher = new AntPathMatcher();
-
 
         Optional<RateLimiterProperties.RateLimitRule> ruleOptional = rules
                 .stream()
-                .filter(item -> matcher.match(item.getEndpoint(), endpoint))
+                .filter(item -> MATCHER.match(item.getEndpoint(), endpoint))
                 .findFirst();
 
         if (ruleOptional.isPresent()) {
@@ -43,25 +49,25 @@ public class RateLimiterRuleManager {
         }
 
         rateLimiterInfo.setAllowed(allow);
-        rateLimiterInfos.add(rateLimiterInfo);
+        storage.add(rateLimiterInfo);
+
         return allow;
     }
 
     public void updateRules(List<RateLimiterProperties.RateLimitRule> rules) {
         bucket.clear();
         this.rules = rules;
-        this.rateLimiterInfos.clear();
+        storage.clear();
         this.systemStartTime = System.currentTimeMillis();
     }
 
     public List<Map<String, Object>> getStatic() {
-        PathMatcher matcher = new AntPathMatcher();
         // 按URI分组统计总请求数
-        Map<String, Long> totalRequests = rateLimiterInfos.stream()
+        Map<String, Long> totalRequests = storage.getAll().stream()
                 .collect(Collectors.groupingBy(RateLimiterInfo::getEndpoint, Collectors.counting()));
 
         // 按URI分组统计允许请求数
-        Map<String, Long> allowedRequests = rateLimiterInfos.stream()
+        Map<String, Long> allowedRequests = storage.getAll().stream()
                 .filter(RateLimiterInfo::getAllowed)
                 .collect(Collectors.groupingBy(RateLimiterInfo::getEndpoint, Collectors.counting()));
 
@@ -74,7 +80,7 @@ public class RateLimiterRuleManager {
             stats.put("isRateLimiter",
                     rules
                             .stream()
-                            .anyMatch(item -> matcher.match(item.getEndpoint(), endpoint))
+                            .anyMatch(item -> MATCHER.match(item.getEndpoint(), endpoint))
             );
             stats.put("total", total);
             stats.put("allowed", allowedRequests.getOrDefault(endpoint, 0L));
@@ -87,10 +93,9 @@ public class RateLimiterRuleManager {
     }
 
     public List<Map<String, Object>> getStaticByEndpoint(String endpoint) {
-        PathMatcher matcher = new AntPathMatcher();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-MM-dd HH");
 
-        List<RateLimiterInfo> targets = rateLimiterInfos.stream().filter(info -> info.getEndpoint().equals(endpoint)).toList();
+        List<RateLimiterInfo> targets = storage.getByEndpoint(endpoint);
 
         Map<String, Long> totalRequests = targets.stream()
                 .collect(Collectors.groupingBy(info -> info.getTimestamp().format(dtf), Collectors.counting()));
@@ -110,7 +115,7 @@ public class RateLimiterRuleManager {
             stats.put("allowed",
                     rules
                             .stream()
-                            .anyMatch(item -> matcher.match(item.getEndpoint(), endpoint)) ? allowedRequests.getOrDefault(hour, 0L) : total
+                            .anyMatch(item -> MATCHER.match(item.getEndpoint(), endpoint)) ? allowedRequests.getOrDefault(hour, 0L) : total
 
             );
             result.add(stats);

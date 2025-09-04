@@ -1,0 +1,7 @@
+rate-limiter:
+  rateLimitingType: standalone
+  rules:
+      - endpoint: /test/**
+        capacity: 1
+        period: 10
+

@@ -1,0 +1,124 @@
+package cn.wubo.rate.limiter;
+
+import cn.wubo.rate.limiter.bucket.IRateLimiter;
+import lombok.Getter;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class RateLimiterRuleManager {
+
+    @Getter
+    private List<RateLimiterProperties.RateLimitRule> rules;
+    private final IRateLimiter bucket;
+    private final List<RateLimiterInfo> rateLimiterInfos;
+    private Long systemStartTime;
+
+
+    public RateLimiterRuleManager(RateLimiterProperties properties, IRateLimiter bucket) {
+        this.rules = properties.getRules();
+        this.bucket = bucket;
+        this.rateLimiterInfos = new ArrayList<>();
+        this.systemStartTime = System.currentTimeMillis();
+    }
+
+    public Boolean tryConsume(String endpoint) {
+        Boolean allow = Boolean.TRUE;
+        RateLimiterInfo rateLimiterInfo = new RateLimiterInfo(endpoint, LocalDateTime.now());
+        PathMatcher matcher = new AntPathMatcher();
+
+
+        Optional<RateLimiterProperties.RateLimitRule> ruleOptional = rules
+                .stream()
+                .filter(item -> matcher.match(item.getEndpoint(), endpoint))
+                .findFirst();
+
+        if (ruleOptional.isPresent()) {
+            RateLimiterProperties.RateLimitRule rule = ruleOptional.get();
+            allow = bucket.tryAcquire(endpoint, rule.getCapacity(), rule.getPeriod()); // 判断是否允许执行
+        }
+
+        rateLimiterInfo.setAllowed(allow);
+        rateLimiterInfos.add(rateLimiterInfo);
+        return allow;
+    }
+
+    public void updateRules(List<RateLimiterProperties.RateLimitRule> rules) {
+        bucket.clear();
+        this.rules = rules;
+        this.rateLimiterInfos.clear();
+        this.systemStartTime = System.currentTimeMillis();
+    }
+
+    public List<Map<String, Object>> getStatic() {
+        PathMatcher matcher = new AntPathMatcher();
+        // 按URI分组统计总请求数
+        Map<String, Long> totalRequests = rateLimiterInfos.stream()
+                .collect(Collectors.groupingBy(RateLimiterInfo::getEndpoint, Collectors.counting()));
+
+        // 按URI分组统计允许请求数
+        Map<String, Long> allowedRequests = rateLimiterInfos.stream()
+                .filter(RateLimiterInfo::getAllowed)
+                .collect(Collectors.groupingBy(RateLimiterInfo::getEndpoint, Collectors.counting()));
+
+        // 构建返回结果
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        totalRequests.forEach((endpoint, total) -> {
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("endpoint", endpoint);
+            stats.put("isRateLimiter",
+                    rules
+                            .stream()
+                            .anyMatch(item -> matcher.match(item.getEndpoint(), endpoint))
+            );
+            stats.put("total", total);
+            stats.put("allowed", allowedRequests.getOrDefault(endpoint, 0L));
+            stats.put("allowedRate", total > 0 ? (allowedRequests.getOrDefault(endpoint, 0L) / total) * 100 : 0L);
+            stats.put("qps", total / ((System.currentTimeMillis() - systemStartTime) / 1000D));
+            result.add(stats);
+        });
+
+        return result;
+    }
+
+    public List<Map<String, Object>> getStaticByEndpoint(String endpoint) {
+        PathMatcher matcher = new AntPathMatcher();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-MM-dd HH");
+
+        List<RateLimiterInfo> targets = rateLimiterInfos.stream().filter(info -> info.getEndpoint().equals(endpoint)).toList();
+
+        Map<String, Long> totalRequests = targets.stream()
+                .collect(Collectors.groupingBy(info -> info.getTimestamp().format(dtf), Collectors.counting()));
+
+        Map<String, Long> allowedRequests = targets.stream()
+                .filter(RateLimiterInfo::getAllowed)
+                .collect(Collectors.groupingBy(info -> info.getTimestamp().format(dtf), Collectors.counting()));
+
+
+        // 构建返回结果
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        totalRequests.forEach((hour, total) -> {
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("hour", hour);
+            stats.put("total", total);
+            stats.put("allowed",
+                    rules
+                            .stream()
+                            .anyMatch(item -> matcher.match(item.getEndpoint(), endpoint)) ? allowedRequests.getOrDefault(hour, 0L) : total
+
+            );
+            result.add(stats);
+        });
+
+        return result.stream()
+                .sorted(Comparator.comparing(stats -> (String) stats.get("hour")))
+                .toList();
+    }
+
+}

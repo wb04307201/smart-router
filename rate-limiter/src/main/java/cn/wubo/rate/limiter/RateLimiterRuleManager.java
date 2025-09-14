@@ -3,7 +3,6 @@ package cn.wubo.rate.limiter;
 import cn.wubo.rate.limiter.bucket.IRateLimiter;
 import cn.wubo.rate.limiter.storage.IStorage;
 import cn.wubo.rate.limiter.storage.RateLimiterInfo;
-import cn.wubo.rate.limiter.storage.SimpleStorage;
 import lombok.Getter;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;

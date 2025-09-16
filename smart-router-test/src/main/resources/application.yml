@@ -1,0 +1,14 @@
+smart-router:
+  rateLimitingType: standalone
+  rateLimitRules:
+      - endpoint: /test/hello
+        capacity: 1
+        period: 10
+  proxyRules:
+    - endpoint: /test/version
+      proxies:
+      - targetEndpoint: /test/v1/version
+        weight: 5
+      - targetEndpoint: /test/v2/version
+        weight: 5
+

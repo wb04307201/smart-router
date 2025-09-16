@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.gitee.wb04307201</groupId>
-    <artifactId>rate-limiter-parent</artifactId>
+    <artifactId>smart-router-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
@@ -24,10 +24,10 @@
     </developers>
 
     <modules>
-        <module>rate-limiter</module>
-        <module>rate-limiter-spring-boot-autoconfigure</module>
-        <module>rate-limiter-spring-boot-starter</module>
-        <module>rate-limiter-test</module>
+        <module>smart-router</module>
+        <module>smart-router-spring-boot-autoconfigure</module>
+        <module>smart-router-spring-boot-starter</module>
+        <module>smart-router-test</module>
     </modules>
 
     <properties>

@@ -1,0 +1,37 @@
+package cn.wubo.smart.router.utils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+
+public class ValidationUtils {
+
+    private ValidationUtils() {
+    }
+
+
+    public static Boolean validStringAttribute(Map<String, Object> attributes, String key) {
+        return !attributes.containsKey(key) || !(attributes.get(key) instanceof String str) || str.trim().isEmpty();
+    }
+
+    public static Boolean validListStringAttribute(Map<String, Object> attributes, String key) {
+        if (!attributes.containsKey(key) || !(attributes.get(key) instanceof List<?> list) || list.isEmpty())
+            return true;
+
+        for (Object item : (List<?>) attributes.get(key)) {
+            if (!(item instanceof String str) || str.trim().isEmpty()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static Boolean validIntegerTypeAndRangeAttribute(Map<String, Object> attributes, String key, Function<Integer,Boolean> function) {
+        return attributes.containsKey(key) && (!(attributes.get(key) instanceof Integer integer) || function.apply(integer));
+        // Arrays.stream(values).noneMatch(value -> value == integer)
+    }
+
+}

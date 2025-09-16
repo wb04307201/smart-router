@@ -1,6 +1,6 @@
 # Smart Router 巧路由
 
-> 一个基于Spring Boot的智能路由和限流组件，支持多种限流策略和路由规则管理。
+> 一个基于Spring Boot的智能路由和限流组件，支持多种限流策略和路由规则管理，实现简单的灰度发布。
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/smart-router.svg)](https://jitpack.io/#com.gitee.wb04307201/smart-router)
 [![star](https://gitee.com/wb04307201/smart-router/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/smart-router)

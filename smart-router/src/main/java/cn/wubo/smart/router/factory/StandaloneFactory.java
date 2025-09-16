@@ -3,6 +3,7 @@ package cn.wubo.smart.router.factory;
 import cn.wubo.smart.router.SmartRouterProperties;
 import cn.wubo.smart.router.bucket.GuavaRateLimiter;
 import cn.wubo.smart.router.bucket.IRateLimiter;
+import jakarta.validation.Valid;
 
 public class StandaloneFactory implements IFactory {
     @Override
@@ -11,7 +12,7 @@ public class StandaloneFactory implements IFactory {
     }
 
     @Override
-    public IRateLimiter create(SmartRouterProperties.RateLimiter properties) {
+    public IRateLimiter create(@Valid SmartRouterProperties.RateLimiter properties) {
         return new GuavaRateLimiter();
     }
 }

@@ -1,9 +1,8 @@
 package cn.wubo.smart.router.utils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 
 public class ValidationUtils {
@@ -29,9 +28,8 @@ public class ValidationUtils {
         return false;
     }
 
-    public static Boolean validIntegerTypeAndRangeAttribute(Map<String, Object> attributes, String key, Function<Integer,Boolean> function) {
-        return attributes.containsKey(key) && (!(attributes.get(key) instanceof Integer integer) || function.apply(integer));
-        // Arrays.stream(values).noneMatch(value -> value == integer)
+    public static Boolean validIntegerTypeAndRangeAttribute(Map<String, Object> attributes, String key, Predicate<Integer> predicate) {
+        return attributes.containsKey(key) && (!(attributes.get(key) instanceof Integer integer) || predicate.test(integer));
     }
 
 }

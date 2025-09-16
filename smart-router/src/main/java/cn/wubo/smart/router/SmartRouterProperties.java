@@ -36,7 +36,7 @@ public class SmartRouterProperties {
     @Data
     public static class ProxyRule {
         private String endpoint;
-        private List<Proxy> proxies;
+        private List<Proxy> proxies = new ArrayList<>();
 
         @Data
         public static class Proxy {

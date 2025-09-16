@@ -1,5 +1,4 @@
 let refreshIntervalId;
-let myChart;
 
 document.addEventListener('DOMContentLoaded', function () {
     // 首次加载数据
@@ -31,17 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById("close-modal").addEventListener("click", () => {
         const modal = document.getElementById("modal");
         modal.style.display = "none";
-    });
-
-    // 浏览器窗口的宽度（含滚动条）
-    const windowWidth = window.innerWidth;
-
-    // 浏览器窗口的高度（含滚动条）
-    const windowHeight = window.innerHeight;
-
-    myChart = echarts.init(document.getElementById('main'), null, {
-        width: windowWidth - 120,
-        height: windowHeight - 120
     });
 });
 

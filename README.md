@@ -158,16 +158,15 @@ smart-router:
 
 ## 监控功能
 
-项目提供了内置的监控页面，访问 `/rate/limiter/monitor/view` 查看监控页面
-
+项目提供了内置的监控页面，访问 `/smart/router/monitor/view` 查看监控页面
 ![img.png](img.png)
 ![img_1.png](img_1.png)
+
 
 ## 扩展性
 
 项目设计具有良好的扩展性：
-
-1. 可以通过实现[IFactory](rate-limiter\src\main\java\cn\wubo\rate\limiter\factory\IFactory.java#L6-L11)接口添加新的存储方式
-2. 可以通过实现[IRateLimiter](rate-limiter\src\main\java\cn\wubo\rate\limiter\bucket\IRateLimiter.java#L3-L9)接口添加新的限流算法
-3. 可以通过实现 [IStorage](rate-limiter\src\main\java\cn\wubo\rate\limiter\storage\IStorage.java#L4-L9) 接口来自定义存储
+1. 可以通过实现[IFactory.java](smart-router/src/main/java/cn/wubo/smart/router/factory/IFactory.java)接口添加新的存储方式
+2. 可以通过实现[IRateLimiter.java](smart-router/src/main/java/cn/wubo/smart/router/bucket/IRateLimiter.java)接口添加新的限流算法
+3. 可以通过实现接口[IStorage.java](smart-router/src/main/java/cn/wubo/smart/router/storage/IStorage.java)来自定义存储
 

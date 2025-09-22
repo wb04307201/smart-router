@@ -220,28 +220,42 @@ table {
 
 /* 弹出框内容区域 */
 .modal-content {
-    background-color: #fff;
-    margin: 30px;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    margin: 30px auto;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     position: relative;
-    width: calc(100% - 60px);
+    width: 90%;
+    max-width: 1000px;
     height: calc(100% - 60px);
+    max-height: 800px;
+    overflow: hidden;
+    border: 1px solid rgba(102, 126, 234, 0.3);
 }
 
 /* 关闭按钮（×） */
 .close-btn {
     position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
     cursor: pointer;
     color: #888;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
 }
 
 .close-btn:hover {
-    color: #000;
+    color: #e74c3c;
+    background-color: rgba(231, 76, 60, 0.1);
+    /*transform: rotate(90deg);*/
+    /*transform-origin: 50% 50%;*/
 }
 
 .tree-container {

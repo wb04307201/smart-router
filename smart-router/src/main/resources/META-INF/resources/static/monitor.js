@@ -162,7 +162,7 @@ function validateJSON() {
             .then(data => {
                 const modal = document.getElementById("modal");
                 modal.style.display = "none";
-                showToast('✅ 限流规则更新成功！');
+                showToast('✅ 规则更新成功！');
             })
             .catch(error => {
                 console.error('错误:', error); // 处理错误

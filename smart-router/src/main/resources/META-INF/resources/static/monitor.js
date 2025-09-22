@@ -1,5 +1,4 @@
 let refreshIntervalId;
-let myChart;
 
 document.addEventListener('DOMContentLoaded', function () {
     // 首次加载数据
@@ -31,17 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById("close-modal").addEventListener("click", () => {
         const modal = document.getElementById("modal");
         modal.style.display = "none";
-    });
-
-    // 浏览器窗口的宽度（含滚动条）
-    const windowWidth = window.innerWidth;
-
-    // 浏览器窗口的高度（含滚动条）
-    const windowHeight = window.innerHeight;
-
-    myChart = echarts.init(document.getElementById('main'), null, {
-        width: windowWidth - 120,
-        height: windowHeight - 120
     });
 });
 
@@ -174,7 +162,7 @@ function validateJSON() {
             .then(data => {
                 const modal = document.getElementById("modal");
                 modal.style.display = "none";
-                showToast('✅ 限流规则更新成功！');
+                showToast('✅ 规则更新成功！');
             })
             .catch(error => {
                 console.error('错误:', error); // 处理错误

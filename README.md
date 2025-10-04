@@ -166,7 +166,6 @@ smart-router:
 ## 扩展性
 
 项目设计具有良好的扩展性：
-1. 可以通过实现[IFactory.java](smart-router/src/main/java/cn/wubo/smart/router/factory/IFactory.java)接口添加新的存储方式
-2. 可以通过实现[IRateLimiter.java](smart-router/src/main/java/cn/wubo/smart/router/bucket/IRateLimiter.java)接口添加新的限流算法
-3. 可以通过实现接口[IStorage.java](smart-router/src/main/java/cn/wubo/smart/router/storage/IStorage.java)来自定义存储
+1. 可以通过实现[IFactory.java](smart-router/src/main/java/cn/wubo/smart/router/factory/IFactory.java)和[IRateLimiter.java](smart-router/src/main/java/cn/wubo/smart/router/bucket/IRateLimiter.java)接口添加新的限流算法 
+2. 可以通过实现接口[IStorage.java](smart-router/src/main/java/cn/wubo/smart/router/storage/IStorage.java)来自定义存储
 

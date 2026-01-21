@@ -127,51 +127,6 @@ smart-router:
       masterName: mymaster       # 主节点名称
 ```
 
-
-## 完整配置示例
-
-```yaml
-smart-router:
-  # 限流规则
-  rateLimitRules:
-    - endpoint: /test/hello
-      capacity: 1     # 每10秒只允许1个请求
-      period: 10
-      unit: SECONDS   # 时间单位（可选）
-  
-  # 代理规则
-  proxyRules:
-    - endpoint: /test/version
-      proxies:
-        - targetEndpoint: /test/v1/version
-          weight: 5    # 50%流量
-        - targetEndpoint: /test/v2/version
-          weight: 5    # 50%流量
-          
-  # Redis相关配置（根据使用的限流类型选择）
-  rateLimiter:
-    # 限流类型
-    rateLimitingType: redis
-    attributes:
-      # Redis单机配置
-      address: localhost:6379
-      password: password
-      database: 0
-      
-      # 或Redis Cluster配置
-      # nodes:
-      #   - localhost:7000
-      #   - localhost:7001
-      # password: password
-      
-      # 或Redis Sentinel配置
-      # nodes:
-      #   - localhost:26379
-      #   - localhost:26380
-      # password: password
-      # masterName: mymaster
-```
-
 ## 监控功能
 
 项目提供了内置的监控页面，访问 `/smart/router/monitor/view` 查看监控页面

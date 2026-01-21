@@ -21,13 +21,9 @@ public class SpelParamModifier {
         PARSER.parseExpression(spelExpression).getValue(context);
     }
 
-    public String modifyJsonBody(String jsonBody, String spelExpression) throws JsonProcessingException {
-        Map<String, Object> bodyMap = OBJECT_MAPPER.readValue(jsonBody, Map.class);
-
+    public void modifyJsonBody(Map<String, Object> params, String spelExpression) {
         StandardEvaluationContext context = new StandardEvaluationContext();
-        context.setVariable("params", bodyMap);
+        context.setVariable("params", params);
         PARSER.parseExpression(spelExpression).getValue(context);
-
-        return OBJECT_MAPPER.writeValueAsString(bodyMap);
     }
 }

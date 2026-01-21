@@ -6,6 +6,7 @@ import cn.wubo.smart.router.expression.SpelParamModifier;
 import cn.wubo.smart.router.http.MutableHttpServletRequestWrapper;
 import cn.wubo.smart.router.storage.IStorage;
 import cn.wubo.smart.router.storage.RouterInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,6 +31,7 @@ public class SmartRouterManager {
     private final IStorage storage;
     private final PathMatcher MATCHER;
     private final Random random;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 
     public SmartRouterManager(SmartRouterProperties properties, IRateLimiter bucket, IStorage storage) {
@@ -135,15 +137,16 @@ public class SmartRouterManager {
                                 Map<String, String[]> modifiedMap = new HashMap<>(mutableRequest.getParameterMap());
                                 SpelParamModifier.modifyParam(modifiedMap, mapRule);
                                 modifiedMap.forEach(mutableRequest::setParameter);
+                                builder.isMap(true).mapContent(OBJECT_MAPPER.writeValueAsString(modifiedMap));
                             }
 
                             if (StringUtils.hasText(bodyRule)) {
                                 String originalBody = StreamUtils.copyToString(mutableRequest.getInputStream(), StandardCharsets.UTF_8);
-                                String modifiedBody = SpelParamModifier.modifyJsonBody(originalBody, bodyRule);
+                                Map<String, Object> bodyMap = OBJECT_MAPPER.readValue(originalBody, Map.class);
+                                SpelParamModifier.modifyJsonBody(bodyMap, bodyRule);
+                                String modifiedBody = OBJECT_MAPPER.writeValueAsString(bodyMap);
                                 mutableRequest.setJsonBody(modifiedBody);
-
-//                                String ttt = StreamUtils.copyToString(mutableRequest.getInputStream(), StandardCharsets.UTF_8);
-//                                System.out.println(ttt);
+                                builder.isBody(true).bodyContent(modifiedBody);
                             }
 
                             request = mutableRequest;

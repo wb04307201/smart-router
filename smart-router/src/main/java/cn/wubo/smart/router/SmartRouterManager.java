@@ -24,22 +24,21 @@ import java.util.*;
 public class SmartRouterManager {
 
     @Getter
-    private List<SmartRouterProperties.RateLimitRule> rateLimitRules;
+    private List<SmartRouterProperties.RateLimiter.RateLimitRule> rateLimitRules;
     @Getter
     private List<SmartRouterProperties.ProxyRule> proxyRules;
     private final IRateLimiter bucket;
     private final IStorage storage;
-    private final PathMatcher MATCHER;
+    private static final PathMatcher MATCHER = new AntPathMatcher();
     private final Random random;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 
     public SmartRouterManager(SmartRouterProperties properties, IRateLimiter bucket, IStorage storage) {
-        this.rateLimitRules = properties.getRateLimitRules();
+        this.rateLimitRules = properties.getRateLimiter().getRateLimitRules();
         this.proxyRules = properties.getProxyRules();
         this.bucket = bucket;
         this.storage = storage;
-        this.MATCHER = new AntPathMatcher();
         this.random = new Random();
     }
 
@@ -70,7 +69,7 @@ public class SmartRouterManager {
         // 检查是否存在限流规则配置
         if (!rateLimitRules.isEmpty()) {
             // 查找匹配当前端点的限流规则
-            Optional<SmartRouterProperties.RateLimitRule> rateLimitRuleOptional = rateLimitRules
+            Optional<SmartRouterProperties.RateLimiter.RateLimitRule> rateLimitRuleOptional = rateLimitRules
                     .stream()
                     .filter(item -> MATCHER.match(item.getEndpoint(), endpoint))
                     .findFirst();
@@ -78,7 +77,7 @@ public class SmartRouterManager {
             // 如果找到匹配的限流规则
             if (rateLimitRuleOptional.isPresent()) {
                 builder.isRateLimit(true);
-                SmartRouterProperties.RateLimitRule rateLimitRule = rateLimitRuleOptional.get();
+                SmartRouterProperties.RateLimiter.RateLimitRule rateLimitRule = rateLimitRuleOptional.get();
                 // 尝试获取令牌桶中的令牌，如果获取失败则表示超过限流限制
                 if (!bucket.tryAcquire(endpoint, rateLimitRule.getCapacity(), rateLimitRule.getPeriod())) {
                     builder.isConsum(false);

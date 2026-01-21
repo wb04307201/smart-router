@@ -1,7 +1,5 @@
 package cn.wubo.smart.router.expression;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.UtilityClass;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -13,7 +11,6 @@ import java.util.*;
 public class SpelParamModifier {
 
     private static final ExpressionParser PARSER = new SpelExpressionParser();
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public void modifyParam(Map<String, String[]> params, String spelExpression) {
         StandardEvaluationContext context = new StandardEvaluationContext();

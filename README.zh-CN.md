@@ -52,12 +52,13 @@
 
 ```yaml
 smart-router:
-  rateLimitingType: standalone                        # 限流类型：standalone、redis、redis-cluster、redis-sentinel
-  rateLimitRules:                                     # 限流规则列表
-    - endpoint: /test/hello                           # 限流路径
-      capacity: 1                                     # 容量/令牌数
-      period: 10                                      # 时间周期
-      unit: SECONDS                                   # 时间单位（可选，默认SECONDS）
+  rateLimiter:
+    rateLimitingType: standalone                      # 限流类型：standalone、redis、redis-cluster、redis-sentinel
+    rateLimitRules:                                   # 限流规则列表
+      - endpoint: /test/hello                         # 限流路径
+        capacity: 1                                   # 容量/令牌数
+        period: 10                                    # 时间周期
+        unit: SECONDS                                 # 时间单位（可选，默认SECONDS）
   proxyRules:                                         # 代理规则列表
     - endpoint: /test/get                             # 代理路径
       proxies:                                        # 代理目标列表
@@ -74,7 +75,7 @@ smart-router:
       proxies:
         - targetEndpoint: /test/v1/post
           weight: 5
-                                                       # 请求体映射
+                                                        # 请求体映射
           bodyRule: |-
             #params.put('value1','Hello')
 ```

@@ -42,6 +42,8 @@ public class SmartRouterProperties {
         public static class Proxy {
             private String targetEndpoint;
             private long weight;
+            private String mapRule;
+            private String bodyRule;
         }
     }
 }

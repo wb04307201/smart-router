@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 @ConfigurationProperties(prefix = "smart-router")
 public class SmartRouterProperties {
     private RateLimiter rateLimiter = new RateLimiter();
-    private List<RateLimitRule> rateLimitRules = new ArrayList<>();
     private List<ProxyRule> proxyRules = new ArrayList<>();
 
     @Data
@@ -23,14 +22,15 @@ public class SmartRouterProperties {
         // redis单点 redis, redis集群 redis-cluster, redis哨兵 redis-sentinel, standalone
         private String rateLimitingType = "standalone";
         private Map<String, Object> attributes = new HashMap<>();
-    }
+        private List<RateLimitRule> rateLimitRules = new ArrayList<>();
 
-    @Data
-    public static class RateLimitRule {
-        private String endpoint;
-        private long capacity;
-        private long period;
-        private TimeUnit unit = TimeUnit.SECONDS;
+        @Data
+        public static class RateLimitRule {
+            private String endpoint;
+            private long capacity;
+            private long period;
+            private TimeUnit unit = TimeUnit.SECONDS;
+        }
     }
 
     @Data

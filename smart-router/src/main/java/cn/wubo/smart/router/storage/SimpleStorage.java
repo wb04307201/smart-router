@@ -30,6 +30,7 @@ public class SimpleStorage implements IStorage {
                 // 先收集所有不同的端点配置
                 .map(info -> {
                     Map<String, Object> stat = new HashMap<>();
+                    stat.put("method", info.getMethod());
                     stat.put("endpoint", info.getEndpoint());
                     stat.put("isRateLimit", info.getIsRateLimit());
                     stat.put("isProxy", info.getIsProxy());

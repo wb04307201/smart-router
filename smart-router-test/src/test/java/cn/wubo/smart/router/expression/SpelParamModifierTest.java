@@ -1,6 +1,7 @@
 package cn.wubo.smart.router.expression;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.expression.ParseException;
@@ -16,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for SpEL parameter and JSON body modification functionality
  */
 public class SpelParamModifierTest {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * 测试modifyParam方法的基本功能
@@ -103,7 +106,9 @@ public class SpelParamModifierTest {
         String jsonBody = "{\"name\":\"oldName\", \"age\":30}";
         String spelExpression = "#params['name'] = 'newName'";
 
-        String result = SpelParamModifier.modifyJsonBody(jsonBody, spelExpression);
+        Map<String, Object> bodyMap = OBJECT_MAPPER.readValue(jsonBody, Map.class);
+        SpelParamModifier.modifyJsonBody(bodyMap, spelExpression);
+        String result = OBJECT_MAPPER.writeValueAsString(bodyMap);
 
         assertTrue(result.contains("\"name\":\"newName\""));
         assertTrue(result.contains("\"age\":30"));
@@ -119,7 +124,9 @@ public class SpelParamModifierTest {
         String jsonBody = "{\"user\":{\"name\":\"oldName\", \"details\":{\"age\":30}}}";
         String spelExpression = "#params['user']['details']['age'] = 25";
 
-        String result = SpelParamModifier.modifyJsonBody(jsonBody, spelExpression);
+        Map<String, Object> bodyMap = OBJECT_MAPPER.readValue(jsonBody, Map.class);
+        SpelParamModifier.modifyJsonBody(bodyMap, spelExpression);
+        String result = OBJECT_MAPPER.writeValueAsString(bodyMap);
 
         assertTrue(result.contains("\"age\":25"));
         assertTrue(result.contains("\"name\":\"oldName\""));
@@ -135,7 +142,9 @@ public class SpelParamModifierTest {
         String jsonBody = "{\"items\":[\"item1\", \"item2\", \"item3\"]}";
         String spelExpression = "#params['items'][1] = 'modifiedItem'";
 
-        String result = SpelParamModifier.modifyJsonBody(jsonBody, spelExpression);
+        Map<String, Object> bodyMap = OBJECT_MAPPER.readValue(jsonBody, Map.class);
+        SpelParamModifier.modifyJsonBody(bodyMap, spelExpression);
+        String result = OBJECT_MAPPER.writeValueAsString(bodyMap);
 
         assertTrue(result.contains("\"items\":[\"item1\",\"modifiedItem\",\"item3\"]"));
     }
@@ -150,25 +159,12 @@ public class SpelParamModifierTest {
         String jsonBody = "{\"name\":\"test\"}";
         String spelExpression = "#params['newField'] = 'newValue'";
 
-        String result = SpelParamModifier.modifyJsonBody(jsonBody, spelExpression);
+        Map<String, Object> bodyMap = OBJECT_MAPPER.readValue(jsonBody, Map.class);
+        SpelParamModifier.modifyJsonBody(bodyMap, spelExpression);
+        String result = OBJECT_MAPPER.writeValueAsString(bodyMap);
 
         assertTrue(result.contains("\"name\":\"test\""));
         assertTrue(result.contains("\"newField\":\"newValue\""));
-    }
-
-    /**
-     * 测试modifyJsonBody方法处理无效JSON
-     * Test handling invalid JSON with modifyJsonBody method
-     */
-    @Test
-    @DisplayName("测试无效JSON处理")
-    void testModifyJsonBodyInvalidJson() {
-        String invalidJson = "{invalid:json}";
-        String spelExpression = "#params['test'] = 'value'";
-
-        assertThrows(JsonProcessingException.class, () -> {
-            SpelParamModifier.modifyJsonBody(invalidJson, spelExpression);
-        });
     }
 
     /**
@@ -182,7 +178,8 @@ public class SpelParamModifierTest {
         String invalidSpelExpression = "#params..invalid[[expression";
 
         assertThrows(ParseException.class, () -> {
-            SpelParamModifier.modifyJsonBody(jsonBody, invalidSpelExpression);
+            Map<String, Object> bodyMap = OBJECT_MAPPER.readValue(jsonBody, Map.class);
+            SpelParamModifier.modifyJsonBody(bodyMap, invalidSpelExpression);
         });
     }
 
@@ -194,7 +191,8 @@ public class SpelParamModifierTest {
     @DisplayName("测试空JSON字符串处理")
     void testModifyJsonBodyEmptyString() {
         assertThrows(JsonProcessingException.class, () -> {
-            SpelParamModifier.modifyJsonBody("", "#params['test'] = 'value'");
+            SpelParamModifier.modifyJsonBody(OBJECT_MAPPER.readValue("", Map.class),
+                    "#params['test'] = 'value'");
         });
     }
 }

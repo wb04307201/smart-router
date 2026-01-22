@@ -44,9 +44,10 @@ public class SmartRouterManager {
 
     public Boolean rule(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String endpoint = request.getRequestURI();
+        String method = request.getMethod();
 
         RouterInfo.RouterInfoBuilder builder = RouterInfo.builder()
-                .endpoint(endpoint);
+                .endpoint(endpoint).method(method);
 
         Boolean isContinue;
         isContinue = rateLimit(endpoint, request, response, builder);

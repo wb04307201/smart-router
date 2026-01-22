@@ -18,7 +18,7 @@ public class TestController {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        return String.format("%S say:'hello world!'", name);
+        return String.format("%s say:'hello world!'", name);
     }
 
 

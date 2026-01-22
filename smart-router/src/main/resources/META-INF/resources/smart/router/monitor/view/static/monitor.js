@@ -1,4 +1,8 @@
 let refreshIntervalId;
+let modal;
+let modal1;
+let rateLimter;
+let detail;
 
 document.addEventListener('DOMContentLoaded', function () {
     // 首次加载数据
@@ -26,11 +30,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    modal = document.getElementById("modal");
+    modal1 = document.getElementById("modal1");
+
     // 关闭弹出框（点击 × 按钮）
     document.getElementById("close-modal").addEventListener("click", () => {
-        const modal = document.getElementById("modal");
         modal.style.display = "none";
     });
+
+    // 关闭弹出框1（点击 × 按钮）
+    document.getElementById("close-modal1").addEventListener("click", () => {
+        modal1.style.display = "none";
+    });
+
+    rateLimter = document.getElementById('rateLimter')
+    detail = document.getElementById('detail')
 });
 
 function loadData() {
@@ -63,10 +77,8 @@ function updateSummary(data) {
 }
 
 function updateTable(data) {
-    const methodtrace = document.getElementById('rateLimter');
-
     if (data.length === 0) {
-        methodtrace.innerHTML = `
+        rateLimter.innerHTML = `
                     <div class="empty-state">
                         <p>暂无数据</p>
                     </div>
@@ -79,13 +91,14 @@ function updateTable(data) {
                 <table>
                     <thead>
                     <tr>
+                            <th>方法</th>
                             <th>地址</th>
                             <th>请求数</th>
                             <th>QPS</th>
-                            <th>被限流</th>
+                            <th>限流</th>
                             <th>通过数</th>
-                            <th>被代理</th>
-                            <th>代理明细</th>
+                            <th>代理</th>
+                            <th>明细</th>
                     </tr>
                 </thead>
             <tbody>
@@ -94,13 +107,14 @@ function updateTable(data) {
     data.forEach(item => {
         tableHTML += `
                     <tr>
+                        <td>${item.method}</td>
                         <td>${item.endpoint}</td>
                         <td>${item.requestCount.toLocaleString()}</td>
                         <td>${item.qps.toLocaleString()}</td>
                         <td>${item.isRateLimit ? "✅" : ""}</td>
                         <td>${item.consumCount.toLocaleString()}</td>
                         <td>${item.isProxy ? "✅" : ""}</td>
-                        <td>${item.proxyStats}</td>
+                        <td><a href="javascript:void(0);" onclick="openModal1('${item.method}','${item.endpoint}')">查看</a></td>
                     </tr>
                 `;
     });
@@ -111,7 +125,7 @@ function updateTable(data) {
     </div>
             `;
 
-    methodtrace.innerHTML = tableHTML;
+    rateLimter.innerHTML = tableHTML;
 }
 
 function updateRules() {
@@ -121,8 +135,6 @@ function updateRules() {
             const rules = document.getElementById('rules');
             rules.innerHTML = JSON.stringify(data,null,2)
 
-
-            const modal = document.getElementById("modal");
             modal.style.display = 'block';
         })
 }
@@ -160,7 +172,6 @@ function validateJSON() {
                 return response.json(); // 解析JSON响应
             })
             .then(data => {
-                const modal = document.getElementById("modal");
                 modal.style.display = "none";
                 showToast('✅ 规则更新成功！');
             })
@@ -171,6 +182,75 @@ function validateJSON() {
     } catch (e) {
         showToast('❌ JSON 格式错误: ' + e.message);
     }
+}
+
+
+function openModal1(method, endpoint) {
+    modal1.style.display = "block";
+
+    fetch(`/smart/router/monitor/getByMethodAnaEndpoint?method=${method}&endpoint=${endpoint}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("数据:", data)
+            updateTable1(data)
+        })
+        .catch(error => {
+            showToast('❌ 发生异常: ' + error.message);
+        })
+}
+
+function updateTable1(data) {
+    if (data.length === 0) {
+        detail.innerHTML = `
+                    <div class="empty-state">
+                        <p>暂无数据</p>
+                    </div>
+                `;
+        return;
+    }
+
+    let tableHTML = `
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                            <th>请求时间</th>
+                            <th>限流</th>
+                            <th>通过</th>
+                            <th>代理</th>
+                            <th>目标地址</th>
+                            <th>参数映射</th>
+                            <th>参数</th>
+                            <th>请求体映射</th>
+                            <th>请求体体</th>
+                    </tr>
+                </thead>
+            <tbody>
+            `;
+
+    data.forEach(item => {
+        tableHTML += `
+                    <tr>
+                        <td>${item.requestTime}</td>
+                        <td>${item.isRateLimit ? "✅" : ""}</td>
+                        <td>${item.isRateLimit && item.isConsum ? "✅" : ""}</td>
+                        <td>${item.isProxy ? "✅" : ""}</td>
+                        <td>${item.targetEndpoint}</td>
+                        <td>${item.isMap ? "✅" : ""}</td>
+                        <td>${item.mapContent}</td>
+                        <td>${item.isBody ? "✅" : ""}</td>
+                        <td>${item.bodyContent}</td>
+                    </tr>
+                `;
+    });
+
+    tableHTML += `
+            </tbody>
+        </table>
+    </div>
+            `;
+
+    detail.innerHTML = tableHTML;
 }
 
 function showToast(message) {

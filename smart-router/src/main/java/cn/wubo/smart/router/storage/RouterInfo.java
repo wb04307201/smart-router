@@ -18,11 +18,14 @@ public class RouterInfo {
     private Boolean isConsum = true;
     @Builder.Default
     private Boolean isProxy = false;
-    private String targetEndpoint;
+    @Builder.Default
+    private String targetEndpoint = "";
     @Builder.Default
     private Boolean isMap = false;
-    private String mapContent;
+    @Builder.Default
+    private String mapContent = "";
     @Builder.Default
     private Boolean isBody = false;
-    private String bodyContent;
+    @Builder.Default
+    private String bodyContent = "";
 }

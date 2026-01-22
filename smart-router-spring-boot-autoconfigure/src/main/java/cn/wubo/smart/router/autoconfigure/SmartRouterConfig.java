@@ -82,6 +82,11 @@ public class SmartRouterConfig implements WebMvcConfigurer {
         RouterFunctions.Builder builder = RouterFunctions.route();
         builder.GET("/smart/router/monitor/view", request -> ServerResponse.temporaryRedirect(URI.create("/smart/router/monitor/view/index.html")).build());
         builder.GET("/smart/router/monitor/static", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(storage.getAllStatic()));
+        builder.GET("/smart/router/monitor/getByMethodAnaEndpoint", request -> {
+            String method = request.param("method").orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "method is required"));
+            String endpoint =  request.param("endpoint").orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "endpoint is required"));
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(storage.getByMethodAnaEndpoint(method, endpoint));
+        });
         builder.GET("/smart/router/monitor/rules", request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(smartRouterManager.getRules()));
         builder.POST("/smart/router/monitor/rules", request -> {
             Rule rule = request.body(new ParameterizedTypeReference<>() {

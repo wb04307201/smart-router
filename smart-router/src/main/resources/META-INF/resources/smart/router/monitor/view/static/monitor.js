@@ -184,7 +184,6 @@ function validateJSON() {
     }
 }
 
-
 function openModal1(method, endpoint) {
     modal1.style.display = "block";
 

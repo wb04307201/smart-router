@@ -41,8 +41,6 @@ public class SimpleStorage implements IStorage {
                 .peek(stat -> {
                     String method = (String) stat.get("method");
                     String endpoint = (String) stat.get("endpoint");
-                    boolean isRateLimit = (Boolean) stat.get("isRateLimit");
-                    boolean isProxy = (Boolean) stat.get("isProxy");
 
                     // 筛选出当前端点的所有请求
                     List<RouterInfo> endpointRequests = routerInfos.stream()
@@ -62,24 +60,6 @@ public class SimpleStorage implements IStorage {
                             .filter(RouterInfo::getIsConsum)
                             .count();
                     stat.put("consumCount", consumCount);
-
-                    // 如果启用限流，计算被限流的请求数
-                    if (isRateLimit) {
-                        long rateLimitCount = requestCount - consumCount;
-                        stat.put("rateLimitCount", rateLimitCount);
-                    }
-
-                    // 如果是代理请求，统计代理到各地址的次数
-//                    if (isProxy) {
-//                        Map<String, Long> proxyStats = endpointRequests.stream()
-//                                .collect(Collectors.groupingBy(
-//                                        RouterInfo::getTargetEndpoint,
-//                                        Collectors.counting()
-//                                ));
-//                        stat.put("proxyStats", proxyStats.toString());
-//                    }else{
-//                        stat.put("proxyStats", "");
-//                    }
                 })
                 .toList();
     }

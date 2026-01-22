@@ -9,11 +9,11 @@ import java.util.function.Predicate;
 @UtilityClass
 public class ValidationUtils {
 
-    public Boolean validStringAttribute(Map<String, Object> attributes, String key) {
+    public boolean validStringAttribute(Map<String, Object> attributes, String key) {
         return !attributes.containsKey(key) || !(attributes.get(key) instanceof String str) || str.trim().isEmpty();
     }
 
-    public Boolean validListStringAttribute(Map<String, Object> attributes, String key) {
+    public boolean validListStringAttribute(Map<String, Object> attributes, String key) {
         if (!attributes.containsKey(key) || !(attributes.get(key) instanceof List<?> list) || list.isEmpty())
             return true;
 
@@ -26,8 +26,7 @@ public class ValidationUtils {
         return false;
     }
 
-    public Boolean validIntegerTypeAndRangeAttribute(Map<String, Object> attributes, String key, Predicate<Integer> predicate) {
+    public boolean validIntegerTypeAndRangeAttribute(Map<String, Object> attributes, String key, Predicate<Integer> predicate) {
         return attributes.containsKey(key) && (!(attributes.get(key) instanceof Integer integer) || predicate.test(integer));
     }
-
 }

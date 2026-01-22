@@ -4,7 +4,7 @@
   <a href="README.md">English</a> | 中文
 </div>
 
-> 一个Spring Boot的应用内根据rest请求路径限流、路径代理组件。
+> 一个Spring Boot应用内根据请求路径限流、代理、修改参数、修改请求体组件。
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/smart-router.svg)](https://jitpack.io/#com.gitee.wb04307201/smart-router)
 [![star](https://gitee.com/wb04307201/smart-router/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/smart-router)
@@ -15,18 +15,19 @@
 
 ## 功能特性
 
-- 多种限流算法支持：
+-限流
+  - 多种限流算法支持：
     - Google Guava 令牌桶算法
     - Redisson 分布式限流
-- 多种Redis部署模式支持：
-    - 单节点Redis
-    - Redis集群模式
-    - Redis哨兵模式
-- 路径代理规则支持
-    - 随机权重路由
+        - 多种Redis部署模式支持：
+          - 单节点Redis
+          - Redis集群模式
+          - Redis哨兵模式
+- 代理
+    - 支持权重配置
     - SpEL表达式参数修改
     - SpEL表达式请求体修改
-- 动态路由规则管理
+- 动态限流、代理配置路修改
 - 实时监控面板
 
 ## 增加 JitPack 仓库
@@ -64,7 +65,7 @@ smart-router:
       proxies:                                        # 代理目标列表
         - targetEndpoint: /test/v1/get                # 目标路径
           weight: 5                                   # 权重
-                                                      # 参数映射
+                                                      # 参数映射(#params为固定参数映射名)
           mapRule: |-
             #params.put('flagv1',#params.get('flag'))
         - targetEndpoint: /test/v2/get
@@ -75,7 +76,7 @@ smart-router:
       proxies:
         - targetEndpoint: /test/v1/post
           weight: 5
-                                                        # 请求体映射
+                                                        # 请求体映射(#params为固定请求体映射名)
           bodyRule: |-
             #params.put('value1','Hello')
 ```
@@ -134,7 +135,7 @@ smart-router:
 GET http://localhost:8080/smart/router/monitor/rules
 Accept: application/json
 ```
-
+响应
 ```json
 {
     "rateLimitRules": [  //限流规则
@@ -178,7 +179,54 @@ Accept: application/json
 }
 ```
 
-## 监控页面
+修改限流、代理配置
+```http request
+POST http://localhost:8080/smart/router/monitor/rules
+Content-Type: application/json
+
+{
+    "rateLimitRules": [  //限流规则
+        {
+            "endpoint": "/test/hello",
+            "capacity": 1,
+            "period": 10,
+            "unit": "SECONDS"
+        }
+    ],
+    "proxyRules": [  //代理规则
+        {
+            "endpoint": "/test/get",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv1',#params.get('flag'))",
+                    "bodyRule": null
+                },
+                {
+                    "targetEndpoint": "/test/v2/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv2',#params.get('flag'))",
+                    "bodyRule": null
+                }
+            ]
+        },
+        {
+            "endpoint": "/test/post",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/post",
+                    "weight": 10,
+                    "mapRule": null,
+                    "bodyRule": "#params.put('value1','Hello')"
+                }
+            ]
+        }
+    ]
+}
+```
+
+## 监控面板
 
 项目提供了内置的监控页面，访问 `/smart/router/monitor/view` 查看监控页面
 ![img.png](img.png)

@@ -21,7 +21,7 @@ smart-router:
     - endpoint: /test/post
       proxies:
         - targetEndpoint: /test/v1/post
-          weight: 5
+          weight: 10
                                                        # 请求体映射
           bodyRule: |-
             #params.put('value1','Hello')

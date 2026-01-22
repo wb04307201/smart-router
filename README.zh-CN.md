@@ -128,11 +128,64 @@ smart-router:
       masterName: mymaster       # 主节点名称
 ```
 
-## 监控功能
+## 运行时动态修改限流、代理配置
+获取当前限流、代理配置
+```http request
+GET http://localhost:8080/smart/router/monitor/rules
+Accept: application/json
+```
+
+```json
+{
+    "rateLimitRules": [  //限流规则
+        {
+            "endpoint": "/test/hello",
+            "capacity": 1,
+            "period": 10,
+            "unit": "SECONDS"
+        }
+    ],
+    "proxyRules": [  //代理规则
+        {
+            "endpoint": "/test/get",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv1',#params.get('flag'))",
+                    "bodyRule": null
+                },
+                {
+                    "targetEndpoint": "/test/v2/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv2',#params.get('flag'))",
+                    "bodyRule": null
+                }
+            ]
+        },
+        {
+            "endpoint": "/test/post",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/post",
+                    "weight": 10,
+                    "mapRule": null,
+                    "bodyRule": "#params.put('value1','Hello')"
+                }
+            ]
+        }
+    ]
+}
+```
+
+## 监控页面
 
 项目提供了内置的监控页面，访问 `/smart/router/monitor/view` 查看监控页面
 ![img.png](img.png)
 ![img_1.png](img_1.png)
+
+可以在页面中查看、调整限流配置、代理配置
+![img_2.png](img_2.png)
 
 
 ## 扩展性

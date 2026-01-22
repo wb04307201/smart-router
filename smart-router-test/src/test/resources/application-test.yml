@@ -22,6 +22,6 @@ smart-router:
       proxies:
         - targetEndpoint: /test/v1/post
           weight: 10
-                                                      # 请求体映射(#params为固定请求体映射名)
+                                                       # 请求体映射(#params为固定请求体映射名)
           bodyRule: |-
             #params.put('value1','Hello')

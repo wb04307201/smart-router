@@ -4,7 +4,7 @@
   English | <a href="README.zh-CN.md">中文</a>
 </div>
 
-> A Spring Boot-based intelligent routing and rate limiting component that supports multiple rate limiting strategies and routing rule management, enabling simple grayscale publishing.
+> A Spring Boot component that provides request path-based rate limiting, proxying, parameter modification, and request body modification within applications.
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/smart-router.svg)](https://jitpack.io/#com.gitee.wb04307201/smart-router)
 [![star](https://gitee.com/wb04307201/smart-router/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/smart-router)
@@ -15,17 +15,20 @@
 
 ## Features
 
-- Support for multiple rate limiting algorithms:
+- Rate Limiting
+  - Multiple rate limiting algorithms support:
     - Google Guava Token Bucket Algorithm
     - Redisson Distributed Rate Limiting
-- Support for multiple Redis deployment modes:
-    - Single-node Redis
-    - Redis Cluster Mode
-    - Redis Sentinel Mode
-- Dynamic Routing Rule Management
-- Real-time Monitoring Panel
-- Annotation-based Rate Limiting Configuration
-- Spring Boot Auto Configuration
+        - Multiple Redis deployment modes support:
+          - Single Node Redis
+          - Redis Cluster Mode
+          - Redis Sentinel Mode
+- Proxy
+    - Supports weight configuration
+    - SpEL Expression Parameter Modification
+    - SpEL Expression Request Body Modification
+- Dynamic rate limiting and proxy configuration route modification
+- Real-time monitoring dashboard
 
 ## Add JitPack Repository
 ```xml
@@ -37,12 +40,12 @@
 </repositories>
 ```
 
-## Import Dependency
+## Include the jar
 ```xml
 <dependency>
     <groupId>com.gitee.wb04307201.smart-router</groupId>
     <artifactId>smart-router-spring-boot-starter</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
 </dependency>
 ```
 
@@ -51,21 +54,32 @@
 ```yaml
 smart-router:
   rateLimiter:
-    rateLimitingType: standalone # Rate limiting type: standalone, redis, redis-cluster, redis-sentinel
-  rateLimitRules:                # Rate limiting rules list
-    - endpoint: /api/test        # API endpoint
-      capacity: 100              # Capacity/token count
-      period: 60                 # Time period
-      unit: SECONDS              # Time unit (optional, defaults to SECONDS)
-  proxyRules:                    # Proxy rules list
-    - endpoint: /api/proxy       # Proxy endpoint
-      proxies:                   # Target proxy list
-        - targetEndpoint: /api/v1/test  # Target endpoint
-          weight: 5              # Weight
-        - targetEndpoint: /api/v2/test
+    rateLimitingType: standalone                      # Rate limiting type: standalone, redis, redis-cluster, redis-sentinel
+    rateLimitRules:                                   # Rate limiting rules list
+      - endpoint: /test/hello                         # Rate limiting path
+        capacity: 1                                   # Capacity/token count
+        period: 10                                    # Time period
+        unit: SECONDS                                 # Time unit (optional, default SECONDS)
+  proxyRules:                                         # Proxy rules list
+    - endpoint: /test/get                             # Proxy path
+      proxies:                                        # Proxy targets list
+        - targetEndpoint: /test/v1/get                # Target path
+          weight: 5                                   # Weight
+                                                      # Parameter mapping
+          mapRule: |-
+            #params.put('flagv1',#params.get('flag'))
+        - targetEndpoint: /test/v2/get
           weight: 5
+          mapRule: |-
+            #params.put('flagv2',#params.get('flag'))
+    - endpoint: /test/post
+      proxies:
+        - targetEndpoint: /test/v1/post
+          weight: 5
+                                                        # Request body mapping
+          bodyRule: |-
+            #params.put('value1','Hello')
 ```
-
 
 ## Rate Limiting Type Configuration
 
@@ -115,60 +129,77 @@ smart-router:
       masterName: mymaster       # Master node name
 ```
 
-
-## Complete Configuration Example
-
-```yaml
-smart-router:
-  # Rate limiting rules
-  rateLimitRules:
-    - endpoint: /test/hello
-      capacity: 1     # Only 1 request allowed per 10 seconds
-      period: 10
-      unit: SECONDS   # Time unit (optional)
-  
-  # Proxy rules
-  proxyRules:
-    - endpoint: /test/version
-      proxies:
-        - targetEndpoint: /test/v1/version
-          weight: 5    # 50% traffic
-        - targetEndpoint: /test/v2/version
-          weight: 5    # 50% traffic
-          
-  # Redis-related configuration (choose according to the rate limiting type used)
-  rateLimiter:
-    # Rate limiting type
-    rateLimitingType: redis
-    attributes:
-      # Redis standalone configuration
-      address: localhost:6379
-      password: password
-      database: 0
-      
-      # Or Redis Cluster configuration
-      # nodes:
-      #   - localhost:7000
-      #   - localhost:7001
-      # password: password
-      
-      # Or Redis Sentinel configuration
-      # nodes:
-      #   - localhost:26379
-      #   - localhost:26380
-      # password: password
-      # masterName: mymaster
+## Runtime Dynamic Modification of Rate Limiting and Proxy Configuration
+Get current rate limiting and proxy configuration
+```http request
+GET http://localhost:8080/smart/router/monitor/rules
+Accept: application/json
+```
+Response
+```json
+{
+    "rateLimitRules": [  //Rate limiting rules
+        {
+            "endpoint": "/test/hello",
+            "capacity": 1,
+            "period": 10,
+            "unit": "SECONDS"
+        }
+    ],
+    "proxyRules": [  //Proxy rules
+        {
+            "endpoint": "/test/get",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv1',#params.get('flag'))",
+                    "bodyRule": null
+                },
+                {
+                    "targetEndpoint": "/test/v2/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv2',#params.get('flag'))",
+                    "bodyRule": null
+                }
+            ]
+        },
+        {
+            "endpoint": "/test/post",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/post",
+                    "weight": 10,
+                    "mapRule": null,
+                    "bodyRule": "#params.put('value1','Hello')"
+                }
+            ]
+        }
+    ]
+}
 ```
 
-## Monitoring Functionality
+Modify rate limiting and proxy configuration
+```http request
+POST http://localhost:8080/smart/router/monitor/rules
+Content-Type: application/json
 
-The project provides a built-in monitoring page. Visit `/smart/router/monitor/view` to view the monitoring page.
+
+
+```
+
+## Monitoring Dashboard
+
+The project provides a built-in monitoring page. Access `/smart/router/monitor/view` to view the monitoring page
 ![img.png](img.png)
 ![img_1.png](img_1.png)
+
+You can view and adjust rate limiting configuration and proxy configuration on the page
+![img_2.png](img_2.png)
 
 
 ## Extensibility
 
-The project is designed with good extensibility:
+The project design has good extensibility:
 1. New rate limiting algorithms can be added by implementing the [IFactory.java](smart-router/src/main/java/cn/wubo/smart/router/factory/IFactory.java) and [IRateLimiter.java](smart-router/src/main/java/cn/wubo/smart/router/bucket/IRateLimiter.java) interfaces
 2. Custom storage can be implemented by implementing the [IStorage.java](smart-router/src/main/java/cn/wubo/smart/router/storage/IStorage.java) interface

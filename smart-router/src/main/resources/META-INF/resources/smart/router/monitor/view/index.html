@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>方法调用监控面板</title>
-    <link rel="stylesheet" type="text/css" href="/static/monitor.css"/>
-    <script src="/static/monitor.js"></script>
+    <title>巧路由监控面板</title>
+    <link rel="stylesheet" type="text/css" href="/smart/router/monitor/view/static/monitor.css"/>
+    <script src="/smart/router/monitor/view/static/monitor.js"></script>
 </head>
 <body>
 <div class="container">
@@ -61,6 +61,21 @@
             <div>
                 <button  class="btn" onclick="formatJSON()">格式化</button>
                 <button  class="btn" onclick="validateJSON()">验证并保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹出框结构 -->
+    <div id="modal1" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal1">🗙</span>
+            <div class="table-container">
+                <div id="detail">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>正在加载数据...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

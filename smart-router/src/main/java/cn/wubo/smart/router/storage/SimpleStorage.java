@@ -30,6 +30,7 @@ public class SimpleStorage implements IStorage {
                 // 先收集所有不同的端点配置
                 .map(info -> {
                     Map<String, Object> stat = new HashMap<>();
+                    stat.put("method", info.getMethod());
                     stat.put("endpoint", info.getEndpoint());
                     stat.put("isRateLimit", info.getIsRateLimit());
                     stat.put("isProxy", info.getIsProxy());
@@ -38,13 +39,12 @@ public class SimpleStorage implements IStorage {
                 .distinct()
                 // 对每个端点进行统计计算
                 .peek(stat -> {
+                    String method = (String) stat.get("method");
                     String endpoint = (String) stat.get("endpoint");
-                    boolean isRateLimit = (Boolean) stat.get("isRateLimit");
-                    boolean isProxy = (Boolean) stat.get("isProxy");
 
                     // 筛选出当前端点的所有请求
                     List<RouterInfo> endpointRequests = routerInfos.stream()
-                            .filter(item -> item.getEndpoint().equals(endpoint))
+                            .filter(item -> item.getMethod().equals(method) && item.getEndpoint().equals(endpoint))
                             .toList();
 
                     // 统计总请求数
@@ -60,31 +60,13 @@ public class SimpleStorage implements IStorage {
                             .filter(RouterInfo::getIsConsum)
                             .count();
                     stat.put("consumCount", consumCount);
-
-                    // 如果启用限流，计算被限流的请求数
-                    if (isRateLimit) {
-                        long rateLimitCount = requestCount - consumCount;
-                        stat.put("rateLimitCount", rateLimitCount);
-                    }
-
-                    // 如果是代理请求，统计代理到各地址的次数
-                    if (isProxy) {
-                        Map<String, Long> proxyStats = endpointRequests.stream()
-                                .collect(Collectors.groupingBy(
-                                        RouterInfo::getTargetEndpoint,
-                                        Collectors.counting()
-                                ));
-                        stat.put("proxyStats", proxyStats.toString());
-                    }else{
-                        stat.put("proxyStats", "");
-                    }
                 })
                 .toList();
     }
 
     @Override
-    public List<RouterInfo> getByEndpoint(String endpoint) {
-        return routerInfos.stream().filter(info -> info.getEndpoint().equals(endpoint)).toList();
+    public List<RouterInfo> getByMethodAnaEndpoint(String method, String endpoint) {
+        return routerInfos.stream().filter(info -> info.getMethod().equals(method) && info.getEndpoint().equals(endpoint)).toList();
     }
 
     @Override

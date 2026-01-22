@@ -19,15 +19,15 @@ class SmartRouterPropertiesTest {
         // 测试默认值
         assertNotNull(properties.getRateLimiter());
         assertEquals("standalone", properties.getRateLimiter().getRateLimitingType());
-        assertNotNull(properties.getRateLimitRules());
+        assertNotNull(properties.getRateLimiter().getRateLimitRules());
         assertNotNull(properties.getProxyRules());
-        assertTrue(properties.getRateLimitRules().isEmpty());
+        assertTrue(properties.getRateLimiter().getRateLimitRules().isEmpty());
         assertTrue(properties.getProxyRules().isEmpty());
     }
 
     @Test
     void testRateLimitRule() {
-        SmartRouterProperties.RateLimitRule rule = new SmartRouterProperties.RateLimitRule();
+        SmartRouterProperties.RateLimiter.RateLimitRule rule = new SmartRouterProperties.RateLimiter.RateLimitRule();
         rule.setEndpoint("/api/test");
         rule.setCapacity(100);
         rule.setPeriod(60);

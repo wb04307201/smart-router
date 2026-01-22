@@ -1,4 +1,4 @@
-package cn.wubo.smart.router.test;
+package cn.wubo.smart.router;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

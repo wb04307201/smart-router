@@ -4,7 +4,7 @@
   <a href="README.md">English</a> | 中文
 </div>
 
-> 一个基于Spring Boot的智能路由和限流组件，支持多种限流策略和路由规则管理，实现简单的灰度发布。
+> 一个Spring Boot应用内根据请求路径限流、代理、修改参数、修改请求体组件。
 
 [![](https://jitpack.io/v/com.gitee.wb04307201/smart-router.svg)](https://jitpack.io/#com.gitee.wb04307201/smart-router)
 [![star](https://gitee.com/wb04307201/smart-router/badge/star.svg?theme=dark)](https://gitee.com/wb04307201/smart-router)
@@ -15,17 +15,20 @@
 
 ## 功能特性
 
-- 多种限流算法支持：
+-限流
+  - 多种限流算法支持：
     - Google Guava 令牌桶算法
     - Redisson 分布式限流
-- 多种Redis部署模式支持：
-    - 单节点Redis
-    - Redis集群模式
-    - Redis哨兵模式
-- 动态路由规则管理
+        - 多种Redis部署模式支持：
+          - 单节点Redis
+          - Redis集群模式
+          - Redis哨兵模式
+- 代理
+    - 支持权重配置
+    - SpEL表达式参数修改
+    - SpEL表达式请求体修改
+- 动态限流、代理配置路修改
 - 实时监控面板
-- 基于注解的限流配置
-- Spring Boot自动配置
 
 ## 增加 JitPack 仓库
 ```xml
@@ -42,7 +45,7 @@
 <dependency>
     <groupId>com.gitee.wb04307201.smart-router</groupId>
     <artifactId>smart-router-spring-boot-starter</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
 </dependency>
 ```
 
@@ -51,21 +54,32 @@
 ```yaml
 smart-router:
   rateLimiter:
-    rateLimitingType: standalone # 限流类型：standalone、redis、redis-cluster、redis-sentinel
-  rateLimitRules:                # 限流规则列表
-    - endpoint: /api/test        # 接口路径
-      capacity: 100              # 容量/令牌数
-      period: 60                 # 时间周期
-      unit: SECONDS              # 时间单位（可选，默认SECONDS）
-  proxyRules:                    # 代理规则列表
-    - endpoint: /api/proxy       # 代理路径
-      proxies:                   # 目标代理列表
-        - targetEndpoint: /api/v1/test  # 目标路径
-          weight: 5              # 权重
-        - targetEndpoint: /api/v2/test
+    rateLimitingType: standalone                      # 限流类型：standalone、redis、redis-cluster、redis-sentinel
+    rateLimitRules:                                   # 限流规则列表
+      - endpoint: /test/hello                         # 限流路径
+        capacity: 1                                   # 容量/令牌数
+        period: 10                                    # 时间周期
+        unit: SECONDS                                 # 时间单位（可选，默认SECONDS）
+  proxyRules:                                         # 代理规则列表
+    - endpoint: /test/get                             # 代理路径
+      proxies:                                        # 代理目标列表
+        - targetEndpoint: /test/v1/get                # 目标路径
+          weight: 5                                   # 权重
+                                                      # 参数映射(#params为固定参数映射名)
+          mapRule: |-
+            #params.put('flagv1',#params.get('flag'))
+        - targetEndpoint: /test/v2/get
           weight: 5
+          mapRule: |-
+            #params.put('flagv2',#params.get('flag'))
+    - endpoint: /test/post
+      proxies:
+        - targetEndpoint: /test/v1/post
+          weight: 5
+                                                        # 请求体映射(#params为固定请求体映射名)
+          bodyRule: |-
+            #params.put('value1','Hello')
 ```
-
 
 ## 限流类型配置
 
@@ -115,56 +129,111 @@ smart-router:
       masterName: mymaster       # 主节点名称
 ```
 
-
-## 完整配置示例
-
-```yaml
-smart-router:
-  # 限流规则
-  rateLimitRules:
-    - endpoint: /test/hello
-      capacity: 1     # 每10秒只允许1个请求
-      period: 10
-      unit: SECONDS   # 时间单位（可选）
-  
-  # 代理规则
-  proxyRules:
-    - endpoint: /test/version
-      proxies:
-        - targetEndpoint: /test/v1/version
-          weight: 5    # 50%流量
-        - targetEndpoint: /test/v2/version
-          weight: 5    # 50%流量
-          
-  # Redis相关配置（根据使用的限流类型选择）
-  rateLimiter:
-    # 限流类型
-    rateLimitingType: redis
-    attributes:
-      # Redis单机配置
-      address: localhost:6379
-      password: password
-      database: 0
-      
-      # 或Redis Cluster配置
-      # nodes:
-      #   - localhost:7000
-      #   - localhost:7001
-      # password: password
-      
-      # 或Redis Sentinel配置
-      # nodes:
-      #   - localhost:26379
-      #   - localhost:26380
-      # password: password
-      # masterName: mymaster
+## 运行时动态修改限流、代理配置
+获取当前限流、代理配置
+```http request
+GET http://localhost:8080/smart/router/monitor/rules
+Accept: application/json
+```
+响应
+```json
+{
+    "rateLimitRules": [  //限流规则
+        {
+            "endpoint": "/test/hello",
+            "capacity": 1,
+            "period": 10,
+            "unit": "SECONDS"
+        }
+    ],
+    "proxyRules": [  //代理规则
+        {
+            "endpoint": "/test/get",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv1',#params.get('flag'))",
+                    "bodyRule": null
+                },
+                {
+                    "targetEndpoint": "/test/v2/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv2',#params.get('flag'))",
+                    "bodyRule": null
+                }
+            ]
+        },
+        {
+            "endpoint": "/test/post",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/post",
+                    "weight": 10,
+                    "mapRule": null,
+                    "bodyRule": "#params.put('value1','Hello')"
+                }
+            ]
+        }
+    ]
+}
 ```
 
-## 监控功能
+修改限流、代理配置
+```http request
+POST http://localhost:8080/smart/router/monitor/rules
+Content-Type: application/json
+
+{
+    "rateLimitRules": [  //限流规则
+        {
+            "endpoint": "/test/hello",
+            "capacity": 1,
+            "period": 10,
+            "unit": "SECONDS"
+        }
+    ],
+    "proxyRules": [  //代理规则
+        {
+            "endpoint": "/test/get",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv1',#params.get('flag'))",
+                    "bodyRule": null
+                },
+                {
+                    "targetEndpoint": "/test/v2/get",
+                    "weight": 5,
+                    "mapRule": "#params.put('flagv2',#params.get('flag'))",
+                    "bodyRule": null
+                }
+            ]
+        },
+        {
+            "endpoint": "/test/post",
+            "proxies": [
+                {
+                    "targetEndpoint": "/test/v1/post",
+                    "weight": 10,
+                    "mapRule": null,
+                    "bodyRule": "#params.put('value1','Hello')"
+                }
+            ]
+        }
+    ]
+}
+```
+
+## 监控面板
 
 项目提供了内置的监控页面，访问 `/smart/router/monitor/view` 查看监控页面
 ![img.png](img.png)
 ![img_1.png](img_1.png)
+
+可以在页面中查看、调整限流配置、代理配置
+![img_2.png](img_2.png)
 
 
 ## 扩展性

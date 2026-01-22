@@ -10,7 +10,7 @@ public interface IStorage {
 
     List<Map<String, Object>> getAllStatic();
 
-    List<RouterInfo> getByEndpoint(String endpoint);
+    List<RouterInfo> getByMethodAnaEndpoint(String method, String endpoint);
 
     void reset();
 }
